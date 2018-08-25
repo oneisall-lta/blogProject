@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% load myfilter %}
+{% load comment_tree %}
+{% block left_content %}
+    <div class="postdate">
+        <div class="month">{{ article.date_publish | month_to_upper }}</div>
+        <div class="date">{{ article.date_publish | date:'d' }}</div>
+    </div>
+    <div class="title">
+        <h2><a href="" rel="bookmark" title="{{ article.title }}">{{ article.title }}</a></h2>
+        <div class="postmeta">
+            <span class="postmeta_author">{{ article.user.username }}</span>
+            <span class="postmeta_category"><a href="" rel="category">{{ article.category.name }}</a></span>
+            <span class="postmeta_time">{{ article.date_publish | date:'Y-m-d' }}</span>
+        </div>
+    </div>
+    <div class="entry">
+        {{ article.content | safe }}
+    </div>
+    <span class="tags">
+            {% for tag in article.tag.all %}
+                <a href="?tag={{ tag.name }}" rel="tag">{{ tag.name }}</a>
+            {% endfor %}
+        </span>
+
+   {% create_comment_tree comments %}
+
+    <div id="commentform">
+        <hr>
+        <h3 id="respond">增加评论</h3>
+        {% if not request.user.is_authenticated %}
+            <div class='login_info'>还没有登陆？可以登录后再评论哦。<b><a href="{% url 'blogapp:gologin' %}">&raquo;去登录</a>&nbsp;<a href="{% url 'blogapp:goreg' %}">&raquo;去注册</a></b>
+            </div>
+        {% else %}
+            <div class='login_info'><b>{{ request.user.username }}</b>,快来写点评论吧!&nbsp;<a href="{% url 'blogapp:logout' %}"><span style="color: red;font-size: 15px">注销</span></a></div>
+        {% endif %}
+        <form action="" method="post">
+            {% csrf_token %}
+            &emsp;用户名：<input type="text" name="user"/></br>
+            评论文章：<input type="text" name="article"/></br>
+            评论对象：<select name="comment">
+                        <option value="none">{{ article.title }}</option>
+                        {% for comment in comments %}
+                        <option>{{ comment.content }}</option>
+                        {% endfor %}
+                    </select></br>
+            评论内容：<textarea name="content"></textarea></br>
+        <input type="submit" value="提交">
+        </form>
+    </div>
+{% endblock %}
